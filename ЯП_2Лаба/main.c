@@ -17,7 +17,6 @@ typedef struct {
 
 Letter unique_letters[MAX_UNIQUE];
 int letter_count = 0;
-bool used_digits[10] = { false };
 
 void add_letter_weight(char c, long long weight, bool is_leading) {
     for (int i = 0; i < letter_count; i++) {
@@ -91,7 +90,7 @@ bool check_weights_sum(void) {
     return total_sum == 0;
 }
 
-bool solve_backtracking(int index) {
+bool solve_backtracking(int index, int used_mask) {
     if (index == letter_count) {
         return check_weights_sum();
     }
@@ -101,15 +100,12 @@ bool solve_backtracking(int index) {
             continue;
         }
 
-        if (!used_digits[d]) {
-            used_digits[d] = true;
+        if (!(used_mask & (1 << d))) {
             unique_letters[index].digit = d;
 
-            if (solve_backtracking(index + 1)) {
+            if (solve_backtracking(index + 1, used_mask | (1 << d))) {
                 return true;
             }
-
-            used_digits[d] = false;
         }
     }
     return false;
@@ -139,14 +135,13 @@ void print_result(const char* equation) {
 void process_rebus(const char* equation) {
     printf("Input:  %s\n", equation);
 
-    memset(used_digits, 0, sizeof(used_digits));
     calculate_weights(equation);
 
     qsort(unique_letters, letter_count, sizeof(Letter), compare_letters);
 
     clock_t start_time = clock();
 
-    if (solve_backtracking(0)) {
+    if (solve_backtracking(0, 0)) {
         clock_t end_time = clock();
         double time_spent = (double)(end_time - start_time) / CLOCKS_PER_SEC;
 
@@ -154,7 +149,7 @@ void process_rebus(const char* equation) {
         printf("Execution time: %.6f seconds\n\n", time_spent);
     }
     else {
-        printf("Solution not found\n\n");
+        printf("No solution found.\n\n");
     }
 }
 
