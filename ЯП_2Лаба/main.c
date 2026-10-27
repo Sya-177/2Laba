@@ -29,6 +29,7 @@ void add_letter_weight(char c, long long weight, bool is_leading) {
             return;
         }
     }
+
     if (letter_count < MAX_UNIQUE) {
         unique_letters[letter_count].letter = c;
         unique_letters[letter_count].weight = weight;
@@ -50,7 +51,7 @@ void calculate_weights(const char* equation) {
         if (strcmp(token, "+") == 0) {
         }
         else if (strcmp(token, "=") == 0) {
-            is_right_side = true; 
+            is_right_side = true;
         }
         else if (isalpha((unsigned char)token[0])) {
             int len = (int)strlen(token);
@@ -58,7 +59,7 @@ void calculate_weights(const char* equation) {
 
             for (int i = len - 1; i >= 0; i--) {
                 char c = token[i];
-                bool is_leading = (i == 0); 
+                bool is_leading = (i == 0);
 
                 long long final_weight = is_right_side ? -current_multiplier : current_multiplier;
 
@@ -70,7 +71,19 @@ void calculate_weights(const char* equation) {
     }
 }
 
-bool check_weights_sum() {
+int compare_letters(const void* a, const void* b) {
+    const Letter* la = (const Letter*)a;
+    const Letter* lb = (const Letter*)b;
+
+    long long wa = llabs(la->weight);
+    long long wb = llabs(lb->weight);
+
+    if (wa < wb) return 1;
+    if (wa > wb) return -1;
+    return 0;
+}
+
+bool check_weights_sum(void) {
     long long total_sum = 0;
     for (int i = 0; i < letter_count; i++) {
         total_sum += unique_letters[i].weight * unique_letters[i].digit;
@@ -85,7 +98,7 @@ bool solve_backtracking(int index) {
 
     for (int d = 0; d <= 9; d++) {
         if (d == 0 && unique_letters[index].is_leading) {
-            continue; 
+            continue;
         }
 
         if (!used_digits[d]) {
@@ -93,8 +106,9 @@ bool solve_backtracking(int index) {
             unique_letters[index].digit = d;
 
             if (solve_backtracking(index + 1)) {
-                return true; 
+                return true;
             }
+
             used_digits[d] = false;
         }
     }
@@ -119,15 +133,16 @@ void print_result(const char* equation) {
         }
     }
     result_str[pos] = '\0';
-    printf("Solution: %s\n", result_str);
+    printf("Result: %s\n", result_str);
 }
 
 void process_rebus(const char* equation) {
-    printf("Input:    %s\n", equation);
+    printf("Input:  %s\n", equation);
 
     memset(used_digits, 0, sizeof(used_digits));
-
     calculate_weights(equation);
+
+    qsort(unique_letters, letter_count, sizeof(Letter), compare_letters);
 
     clock_t start_time = clock();
 
@@ -143,7 +158,7 @@ void process_rebus(const char* equation) {
     }
 }
 
-int main() {
+int main(void) {
     process_rebus("SEND + MORE = MONEY");
     process_rebus("BE + BE = MOO");
     process_rebus("BIG + CAT = LION");
